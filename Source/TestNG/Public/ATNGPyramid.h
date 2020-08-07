@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "TNGAPyramid.generated.h"
+#include "ATNGPyramid.generated.h"
 
 UCLASS()
-class TESTNG_API ATNGAPyramid : public AActor
+class TESTNG_API AATNGPyramid : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ATNGAPyramid();
+	AATNGPyramid();
 
 protected:
 	// Called when the game starts or when spawned

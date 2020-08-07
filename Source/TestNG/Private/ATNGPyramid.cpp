@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "../Public/TNGAPyramid.h"
+#include "ATNGPyramid.h"
 
 // Sets default values
-ATNGAPyramid::ATNGAPyramid()
+AATNGPyramid::AATNGPyramid()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -12,14 +12,14 @@ ATNGAPyramid::ATNGAPyramid()
 }
 
 // Called when the game starts or when spawned
-void ATNGAPyramid::BeginPlay()
+void AATNGPyramid::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
 // Called every frame
-void ATNGAPyramid::Tick(float DeltaTime)
+void AATNGPyramid::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
