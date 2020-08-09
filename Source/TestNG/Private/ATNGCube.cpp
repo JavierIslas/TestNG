@@ -1,44 +1,146 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "ATNGCube.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
+#include "Kismet/GameplayStatics.h"
+#include "../Public/ATNGPyramid.h"
+#include "TestNG/TestNGGameMode.h"
 
 // Sets default values
 AATNGCube::AATNGCube()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+
+	//It use a Scene Component to base the tile on
+	if (RootComponent)
+	{
+		RootComponent->SetMobility(EComponentMobility::Movable);
+	}
 
 }
 
 void AATNGCube::TickFalling()
 {
+	ATestNGGameMode* GM = Cast<ATestNGGameMode>(UGameplayStatics::GetGameMode(this));
+	if (GM)
+	{
+		check(PyramidOwner);
+		check(TotalFallingTime > 0.0f);
+		float FallCompleteFraction = (GetWorld()->GetTimeSeconds() - FallingStartTime) / TotalFallingTime;
+
+		//Stop falling if we're at the final location. Otherwise, continue to move
+		if (FallCompleteFraction >= 1.0f)
+		{
+			StopFalling();
+		}
+		else
+		{
+			FVector NewLocation = FMath::Lerp(FallingStartLocation, FallingEndLocation, FallCompleteFraction);
+			SetActorLocation(NewLocation);
+		}
+	}
+	else
+	{
+		//Error. Stop ticking this function. Move to the final location
+		StopFalling();
+	}
+}
+
+void AATNGCube::StartFalling(bool bUseCurrentWorldLocation)
+{
+	float FallDistance = 0;
+
+	FallingStartTime = GetWorld()->GetTimeSeconds();
+	FallingStartLocation = GetActorLocation();
+	//Tiles, fall at a fixed rate of 60 FPS
+	GetWorldTimerManager().SetTimer(TimerHandle_TickFalling, this, &AATNGCube::TickFalling, 0.01f, true);
+	check(PyramidOwner);
+
+	if (!bUseCurrentWorldLocation)
+	{
+		//Fall from where we are on the table to wher we are supposed to beon the table
+		int32 YOffset = 0;
+		int32 HeightAboveBottom = 1;
+		while (true)
+		{
+			++YOffset;
+			if (PyramidOwner->GetPyramidAddressWithOffset(GetPyramidPosition(), 0, -YOffset, LandingAddress))
+			{
+				if (AATNGCube* TileBelow = PyramidOwner->GetCubeFromPyramidAddress(LandingAddress))
+				{
+					//We're not off the table, so check to see what is in this space and reack to it
+					if (TileBelow->CubeState == EState::S_Falling)
+					{
+						//This space contains a fallig thile, so contiue to fall through it, but note that the tile will land underneath us, so we need to leave a gap for it
+						++HeightAboveBottom;
+						continue;
+					}
+					else if (TileBelow->CubeState == EState::S_PendingDelete)
+					{
+						//This space contains a tile that is about to be deleted. WE can fall through this space freely
+						continue;
+					}
+				}
+				else
+				{
+					//The space below is empty, but is on the table. We can fall through this space freely
+					continue;
+				}
+			}
+			//This space is off the table or contains a tile that is staying. Go back one space and stop
+			YOffset -= HeightAboveBottom;
+			PyramidOwner->GetPyramidAddressWithOffset(GetPyramidPosition(), 0, -YOffset, LandingAddress);
+			break;
+		}
+		FallDistance = PyramidOwner->CubeSize.Y * YOffset;
+		FallingEndLocation = FallingStartLocation;
+		FallingEndLocation.Z -= FallDistance;
+	}
+	else
+	{
+		//Fall from where we are physically to where we are supposed to be on the table
+		LandingAddress = GetPyramidPosition();
+		FallingEndLocation = PyramidOwner->GetLocationFromPyramidAddress(LandingAddress);
+		FallDistance = FallingStartLocation.Z - FallingEndLocation.Z;
+	}
+	/**
+	ATestNGGameMode* GM = Cast<ATestNGGameMode>(UGameplayStatics::GetGameMode(this));
+	TotalFallingTime = 0.0f;
+	if (GM && (GM->TileMoveSpeed > 0.0f))
+	{
+		TotalFallingTime = FallDistance / 60;
+	}
+	if (TotalFallingTime <= 0.0f)
+	{
+		TotalFallingTime = 0.75f;
+	}
+	**/
 }
 
 void AATNGCube::StopFalling()
 {
+	GetWorldTimerManager().ClearTimer(TimerHandle_TickFalling);
+	SetActorLocation(FallingEndLocation);
+	PyramidOwner->OnFinishedFalling(this, LandingAddress);
 }
 
-void AATNGCube::SetTableAddress(int32 NewLocation)
+void AATNGCube::SetPyramidAddress(int32 NewLocation)
 {
+	PyramidAddress = NewLocation;
 }
 
 int32 AATNGCube::GetPyramidPosition() const
 {
-	return int32();
+	return PyramidAddress;
 }
 
 // Called when the game starts or when spawned
 void AATNGCube::BeginPlay()
 {
 	Super::BeginPlay();
+
+	PyramidOwner = Cast<AATNGPyramid>(GetOwner());
 	
-}
-
-// Called every frame
-void AATNGCube::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
 }
 

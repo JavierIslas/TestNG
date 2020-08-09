@@ -28,9 +28,11 @@ public:
 
 	void TickFalling();
 
+	void StartFalling(bool bUseCurrentWorldLocation = false);
+
 	void StopFalling();
 
-	void SetTableAddress(int32 NewLocation);
+	void SetPyramidAddress(int32 NewLocation);
 
 	int32 GetPyramidPosition() const;
 
@@ -49,6 +51,10 @@ protected:
 
 	FTimerHandle TimerHandle_TickFalling;
 
+	float TotalFallingTime;
+
+	float FallingStartTime;
+
 	/** Location in the table as a 1D value, the table can translate it to a position*/
 	UPROPERTY(BlueprintReadOnly, Category = "Tile")
 	int32 PyramidAddress;
@@ -58,10 +64,6 @@ protected:
 
 	/**Table where the Tile is */
 	UPROPERTY(BlueprintReadOnly, Category = "Tile")
-	class AATNGPyramid* TableOwner;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	class AATNGPyramid* PyramidOwner;
 
 };

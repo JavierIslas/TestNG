@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "ATNGPyramid.generated.h"
 
+class AATNGCube; 
+
 UCLASS()
 class TESTNG_API AATNGPyramid : public AActor
 {
@@ -15,12 +17,65 @@ public:
 	// Sets default values for this actor's properties
 	AATNGPyramid();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TArray<AATNGCube*> CubesInGame;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConfigCube")
+	TSubclassOf<AATNGCube> CubeToSpawn;
+
+	/** Size of a position on the Table. Doesn't have borders or spacing between tiles */
+	UPROPERTY(EditDefaultsOnly, Category = "ConfigCubes")
+	FVector CubeSize;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConfigTable")
+	TArray< UMaterialInterface*> MaterialsLib;
+
+	/** The width of the Table. Needed to Calculate cube position and neighbors. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConfigTable")
+	int32 TableWidth;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConfigTable")
+	int32 TableHeight;
+
+	/** Spawn a tile and associate it with a specific Table address */
+	AATNGCube* CreateCube(UMaterialInterface* Material, FVector SpawnLocation, int32 SpawnTableAddress, int32 TileTypeID);
+
+	/** Randomly select a color for the cube, using the probability values on the tile. */
+	int32 SelectColor();
+
+	/** Get the pointer to the tile ar the specofoed grod address. */
+	AATNGCube* GetCubeFromPyramidAddress(int32 TableAddress) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Initialization")
+	void InitializePyramid();
+
+	/** Get world location from a Table address */
+	UFUNCTION(BlueprintCallable, Category = "Tile")
+	FVector GetLocationFromPyramidAddress(int32 Address) const;
+
+	/** Get world location from a Table address relative to another address. Offset between both is measured in tiles */
+	FVector GetLocationFromPyramidAddressWithOffset(int32 TableAddress, int32 XOffserInTiles, int32 YOffsetInTiles) const;
+
+	/** Get table address relative to another table address. Offset between both is measured in tiles */
+	UFUNCTION(BlueprintCallable, Category = "Tile")
+	bool GetPyramidAddressWithOffset(int32 InitialTableAddres, int32 XOffset, int32 YOffset, int32& ReturnTableAddress) const;
+
+	/** Determine if 2 table addresses are valid and adjacent */
+	bool AreAddressesNeighbors(int32 TableAddressA, int32 TableAddressB) const;
+
+	void OnFinishedFalling(AATNGCube* Tile, int32 LandingAddress);
+
+private:
+	/** Tiles that are currently falling */
+	TArray<AATNGCube*> FallingTiles;
+
+	/** Tiles that are currentle swapping position with each other.Sholud be exactly two of them, or zero */
+	TArray<AATNGCube*> SwappingTiles;
+
+	/** After spawning new tiles, wich tiles to check for automatic matches */
+	TArray<AATNGCube*> TilesToCheck;
+
+	/** Tiles that are currently reacting to being matches */
+	TArray<AATNGCube*> TilesBeingDestroyed;
 
 };
