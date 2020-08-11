@@ -36,6 +36,11 @@ public:
 
 	int32 GetPyramidPosition() const;
 
+	//class UStaticMesh* GetMeshComponent() { return MeshComponent; };
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ChangeMaterial(class UMaterialInterface* Mat);
+
 	UPROPERTY(BlueprintReadOnly)
 	int32 CubeColor;
 
@@ -50,6 +55,8 @@ protected:
 	FVector FallingEndLocation;
 
 	FTimerHandle TimerHandle_TickFalling;
+
+	class UStaticMesh* MeshComponent;
 
 	float TotalFallingTime;
 

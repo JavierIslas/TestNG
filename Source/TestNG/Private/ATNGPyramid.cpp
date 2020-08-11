@@ -3,6 +3,7 @@
 
 #include "ATNGPyramid.h"
 #include "Engine/World.h"
+#include "Engine/StaticMesh.h"
 #include "Materials/MaterialInterface.h"
 #include "../Public/ATNGCube.h"
 
@@ -17,13 +18,11 @@ AATNGPyramid::AATNGPyramid()
 }
 
 
-AATNGCube* AATNGPyramid::CreateCube(UMaterialInterface* TileMaterial, FVector SpawnLocation, int32 SpawnTableAddress, int32 TileTypeID)
+AATNGCube* AATNGPyramid::CreateCube(UMaterialInterface* TileMaterial, FVector SpawnLocation, int32 SpawnTableAddress)
 {
-	if (nullptr) { return nullptr; }
-	else
-	{
-		checkSlow(MaterialsLib.IsValidIndex(TileTypeID));
-
+	//if (nullptr) { return nullptr; }
+	//else
+	//{
 		UWorld* const World = GetWorld();
 		if (!World) { return nullptr; }
 
@@ -40,15 +39,16 @@ AATNGCube* AATNGPyramid::CreateCube(UMaterialInterface* TileMaterial, FVector Sp
 			//Spawn the cube
 			AATNGCube* const NewCube = World->SpawnActor<AATNGCube>(CubeToSpawn, SpawnLocation, SpawnRotation, SpawnParam);
 			NewCube->SetPyramidAddress(SpawnTableAddress);
+			NewCube->ChangeMaterial(TileMaterial);
 			CubesInGame[SpawnTableAddress] = NewCube;
 			return NewCube;
 		}
-	}
+	//}
 }
 
 int32 AATNGPyramid::SelectColor()
 {
-	return int32();
+	return FMath::RandRange(0, 2);
 }
 
 AATNGCube* AATNGPyramid::GetCubeFromPyramidAddress(int32 TableAddress) const
@@ -75,7 +75,7 @@ void AATNGPyramid::InitializePyramid()
 			GetPyramidAddressWithOffset(0, Column, Row, TableAddress);
 			SpawnLocation = GetLocationFromPyramidAddress(TableAddress);
 
-			CreateCube(MaterialsLib[MatID], SpawnLocation, TableAddress, MatID);
+			CreateCube(MaterialsLib[MatID], SpawnLocation, TableAddress);
 		}
 
 	}

@@ -38,7 +38,7 @@ public:
 	int32 TableHeight;
 
 	/** Spawn a tile and associate it with a specific Table address */
-	AATNGCube* CreateCube(UMaterialInterface* Material, FVector SpawnLocation, int32 SpawnTableAddress, int32 TileTypeID);
+	AATNGCube* CreateCube(UMaterialInterface* Material, FVector SpawnLocation, int32 SpawnTableAddress);
 
 	/** Randomly select a color for the cube, using the probability values on the tile. */
 	int32 SelectColor();

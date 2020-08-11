@@ -4,6 +4,7 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/StaticMesh.h"
 #include "../Public/ATNGPyramid.h"
 #include "TestNG/TestNGGameMode.h"
 
@@ -17,7 +18,8 @@ AATNGCube::AATNGCube()
 	{
 		RootComponent->SetMobility(EComponentMobility::Movable);
 	}
-
+	
+	//MeshComponent = CreateDefaultSubobject<UStaticMesh>(TEXT("Cube"));
 }
 
 void AATNGCube::TickFalling()
