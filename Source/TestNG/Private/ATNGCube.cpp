@@ -65,13 +65,13 @@ void AATNGCube::StartFalling(bool bUseCurrentWorldLocation)
 
 	FallingStartTime = GetWorld()->GetTimeSeconds();
 	FallingStartLocation = GetActorLocation();
-	//Tiles, fall at a fixed rate of 60 FPS
+	//Falls at a fixed rate of 60 FPS
 	GetWorldTimerManager().SetTimer(TimerHandle_TickFalling, this, &AATNGCube::TickFalling, 0.01f, true);
 	check(PyramidOwner);
 
 	if (!bUseCurrentWorldLocation)
 	{
-		//Fall from where we are on the table to wher we are supposed to beon the table
+		//Fall from where we are on the table to wher we are supposed to be on the table
 		int32 YOffset = 0;
 		int32 HeightAboveBottom = 1;
 		while (true)
@@ -149,7 +149,7 @@ int32 AATNGCube::GetPyramidPosition() const
 
 void AATNGCube::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	auto aux = Cast<ATestNGProjectile>(OtherActor);
+	ATestNGProjectile* aux = Cast<ATestNGProjectile>(OtherActor);
 	if (aux)
 	{
 		OtherActor->Destroy();
@@ -157,9 +157,10 @@ void AATNGCube::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 	}
 }
 
-void AATNGCube::ChangeMaterial(UMaterialInterface* Mat)
+void AATNGCube::ChangeMaterial(UMaterialInterface* Mat, int32 ColorID)
 {
 	MeshComponent->SetMaterial(0, Mat);
+	CubeColor = ColorID;
 }
 
 // Called when the game starts or when spawned

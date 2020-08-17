@@ -36,6 +36,12 @@ public:
 	UPROPERTY(Replicated)
 	bool bIsAlive;
 
+	UFUNCTION(BlueprintCallable)
+	int32 GetCurrentPoints();
+
+	UFUNCTION(BlueprintCallable)
+	void AddPoints(int32 NewPoints);
+
 protected:
 
 	/** Fires a projectile. */
@@ -63,6 +69,9 @@ protected:
 	UCameraComponent* CameraComponent;
 
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Points")
+	int32 CurrentPoints;
 
 public:
 	/** Returns Mesh1P subobject **/

@@ -18,7 +18,7 @@ AATNGPyramid::AATNGPyramid()
 }
 
 
-AATNGCube* AATNGPyramid::CreateCube(UMaterialInterface* TileMaterial, FVector SpawnLocation, int32 SpawnTableAddress)
+AATNGCube* AATNGPyramid::CreateCube(int32 Mat, FVector SpawnLocation, int32 SpawnTableAddress)
 {
 	//if (nullptr) { return nullptr; }
 	//else
@@ -39,17 +39,33 @@ AATNGCube* AATNGPyramid::CreateCube(UMaterialInterface* TileMaterial, FVector Sp
 			//Spawn the cube
 			AATNGCube* const NewCube = World->SpawnActor<AATNGCube>(CubeToSpawn, SpawnLocation, SpawnRotation, SpawnParam);
 			NewCube->SetPyramidAddress(SpawnTableAddress);
-			NewCube->ChangeMaterial(TileMaterial);
+			NewCube->ChangeMaterial(MaterialsLib[Mat].Material, Mat);
 			CubesInGame[SpawnTableAddress] = NewCube;
 			return NewCube;
 		}
 	//}
 }
-
+//Testing probability method to balance the max punctuation of a game
 int32 AATNGPyramid::SelectColor()
 {
-	return FMath::RandRange(0, 2);
+	float NormalizingFactor = 0;
+	for (const FTileType& MatBase : MaterialsLib)
+	{
+		NormalizingFactor += MatBase.Probability;
+	}
+	float TestNumber = FMath::FRandRange(0.0f, NormalizingFactor);
+	float CompareTo = 0;
+	for (int32 ArrayChecked = 0; ArrayChecked != MaterialsLib.Num(); ArrayChecked++)
+	{
+		CompareTo += MaterialsLib[ArrayChecked].Probability;
+		if (TestNumber <= CompareTo)
+		{
+			return ArrayChecked;
+		}
+	}
+	return 0;
 }
+
 
 AATNGCube* AATNGPyramid::GetCubeFromPyramidAddress(int32 TableAddress) const
 {
@@ -75,7 +91,7 @@ void AATNGPyramid::InitializePyramid()
 			GetPyramidAddressWithOffset(0, Column, Row, TableAddress);
 			SpawnLocation = GetLocationFromPyramidAddress(TableAddress);
 
-			CreateCube(MaterialsLib[MatID], SpawnLocation, TableAddress);
+			CreateCube(MatID, SpawnLocation, TableAddress);
 		}
 
 	}
@@ -85,12 +101,15 @@ FVector AATNGPyramid::GetLocationFromPyramidAddress(int32 Address) const
 {
 	FVector Center = GetActorLocation();
 	FVector OutLocation = FVector(-(TableWidth * 0.5f) * CubeSize.X + (CubeSize.X * 0.5f), 0.0f, -(TableHeight * 0.5f) * CubeSize.Y + (CubeSize.Y * 0.5f));
-	check(TableWidth > 0);
-	OutLocation.X += CubeSize.X * (float)(Address % TableWidth);
-	OutLocation.Z += CubeSize.Y * (float)(Address / TableWidth);
-	OutLocation += Center;
+	if (TableWidth > 0) {
+		OutLocation.X += CubeSize.X * (float)(Address % TableWidth);
+		OutLocation.Z += CubeSize.Y * (float)(Address / TableWidth);
+		OutLocation += Center;
 
-	return OutLocation;
+		return OutLocation;
+	}
+
+	return FVector::ZeroVector;
 }
 
 FVector AATNGPyramid::GetLocationFromPyramidAddressWithOffset(int32 TableAddress, int32 XOffserInTiles, int32 YOffsetInTiles) const
@@ -159,4 +178,20 @@ void AATNGPyramid::OnFinishedFalling(AATNGCube* Cube, int32 LandingAddress)
 		Cube->SetPyramidAddress(ReturnTableAddress);
 		Cube->CubeState = EState::S_Normal;
 	}
+}
+
+TArray<AATNGCube*> AATNGPyramid::FindNeighbors(AATNGCube* StartingCube, bool bMustMatchID, int32 RunLength) const
+{
+	FVector auxTableAddress = GetLocationFromPyramidAddress(StartingCube->GetPyramidPosition());
+	AATNGCube* NeighborTile = nullptr;
+	TArray<AATNGCube*> MatchInProgress;
+	TArray<AATNGCube*> AllMatchingCubes;
+
+	//If we found any other tile, or if we're not conserner with matching TileID, then we know we have a valid run, and we need to add the original tile to the list
+	//If we do care about matchin tile type and we haven't found anything by this point, then we don't have a match and should not return the starting tile in a list by itself
+	if (AllMatchingCubes.Num() > 0 || !bMustMatchID)
+	{
+		AllMatchingCubes.Add(StartingCube);
+	}
+	return AllMatchingCubes;
 }

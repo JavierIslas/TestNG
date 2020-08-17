@@ -33,6 +33,8 @@ ATestNGCharacter::ATestNGCharacter()
 	GunMeshComponent->SetupAttachment(Mesh1PComponent, "GripPoint");
 
 	bIsAlive = true;
+
+	CurrentPoints = 0;
 }
 
 
@@ -65,6 +67,17 @@ void ATestNGCharacter::Tick(float DeltaTime)
 	}
 }
 
+
+int32 ATestNGCharacter::GetCurrentPoints()
+{
+	return CurrentPoints;
+}
+
+void ATestNGCharacter::AddPoints(int32 NewPoints)
+{
+	if(NewPoints)
+		CurrentPoints += NewPoints;
+}
 
 void ATestNGCharacter::Fire()
 {

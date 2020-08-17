@@ -42,7 +42,7 @@ public:
 	void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 
-	void ChangeMaterial(class UMaterialInterface* Mat);
+	void ChangeMaterial(class UMaterialInterface* Mat, int32 ColorID);
 
 	UPROPERTY(BlueprintReadOnly)
 	int32 CubeColor;

@@ -12,6 +12,19 @@ Crear una estructura que represente el cubo y replicarla
 
 class AATNGCube; 
 
+USTRUCT(BlueprintType)
+struct FTileType
+{
+	GENERATED_USTRUCT_BODY();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float Probability = 0.33;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UMaterialInterface* Material = nullptr;
+
+};
+
 UCLASS()
 class TESTNG_API AATNGPyramid : public AActor
 {
@@ -32,7 +45,7 @@ public:
 	FVector CubeSize;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConfigTable")
-	TArray< UMaterialInterface*> MaterialsLib;
+	TArray<FTileType> MaterialsLib;
 
 	/** The width of the Table. Needed to Calculate cube position and neighbors. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConfigTable")
@@ -42,7 +55,7 @@ public:
 	int32 TableHeight;
 
 	/** Spawn a tile and associate it with a specific Table address */
-	AATNGCube* CreateCube(UMaterialInterface* Material, FVector SpawnLocation, int32 SpawnTableAddress);
+	AATNGCube* CreateCube(int32 Mat, FVector SpawnLocation, int32 SpawnTableAddress);
 
 	/** Randomly select a color for the cube, using the probability values on the tile. */
 	int32 SelectColor();
@@ -68,6 +81,8 @@ public:
 	bool AreAddressesNeighbors(int32 TableAddressA, int32 TableAddressB) const;
 
 	void OnFinishedFalling(AATNGCube* Tile, int32 LandingAddress);
+
+	TArray<AATNGCube*> FindNeighbors(AATNGCube* StartingTile, bool bMustMatchID, int32 RunLength) const;
 
 private:
 	/** Tiles that are currently falling */

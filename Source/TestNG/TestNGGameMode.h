@@ -18,6 +18,11 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Game Mode")
 	FOnActorKilled OnActorKilled;
+
+	void GivePointsToPlayer(const int32 MatchLength, class ACharacter* Player);
+
+private:
+	int32 CalculatePoints(int32 Cant);
 };
 
 
