@@ -6,6 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "ATNGPyramid.generated.h"
 
+/*
+Crear una estructura que represente el cubo y replicarla
+*/
+
 class AATNGCube; 
 
 UCLASS()

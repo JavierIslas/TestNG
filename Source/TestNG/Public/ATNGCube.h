@@ -36,9 +36,12 @@ public:
 
 	int32 GetPyramidPosition() const;
 
-	//class UStaticMesh* GetMeshComponent() { return MeshComponent; };
+	class UStaticMeshComponent* GetMeshComponent() { return MeshComponent; };
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION()
+	void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+
 	void ChangeMaterial(class UMaterialInterface* Mat);
 
 	UPROPERTY(BlueprintReadOnly)
@@ -56,7 +59,8 @@ protected:
 
 	FTimerHandle TimerHandle_TickFalling;
 
-	class UStaticMesh* MeshComponent;
+	UPROPERTY(VisibleAnywhere)
+	class UStaticMeshComponent* MeshComponent;
 
 	float TotalFallingTime;
 

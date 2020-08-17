@@ -1,16 +1,17 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+	// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "TestNGProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "Public/ATNGCube.h"
 
-ATestNGProjectile::ATestNGProjectile() 
+ATestNGProjectile::ATestNGProjectile()
 {
 	// Use a sphere as a simple collision representation
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	CollisionComp->InitSphereRadius(5.0f);
-	CollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
-	CollisionComp->OnComponentHit.AddDynamic(this, &ATestNGProjectile::OnHit);		// set up a notification for when this component hits something blocking
+	CollisionComp->SetCollisionProfileName("Projectile");
+	CollisionComp->OnComponentHit.AddDynamic(this, &ATestNGProjectile::OnHit);	// set up a notification for when this component hits something blocking
 
 	// Players can't walk on it
 	CollisionComp->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
@@ -29,7 +30,11 @@ ATestNGProjectile::ATestNGProjectile()
 
 	// Die after 3 seconds by default
 	InitialLifeSpan = 3.0f;
+
+	SetReplicates(true);
+	SetReplicateMovement(true);
 }
+
 
 void ATestNGProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
@@ -37,6 +42,11 @@ void ATestNGProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL) && OtherComp->IsSimulatingPhysics())
 	{
 		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+	}
+
+	if (Role == ROLE_Authority)
+	{
+		MakeNoise(1.0f, Instigator);
 
 		Destroy();
 	}

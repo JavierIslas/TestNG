@@ -6,6 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "TestNGGameMode.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnActorKilled, AActor*, VictimeActor, AActor*, KillerActor, AController*, KillerController);
+
 UCLASS(minimalapi)
 class ATestNGGameMode : public AGameModeBase
 {
@@ -13,6 +15,9 @@ class ATestNGGameMode : public AGameModeBase
 
 public:
 	ATestNGGameMode();
+
+	UPROPERTY(BlueprintAssignable, Category = "Game Mode")
+	FOnActorKilled OnActorKilled;
 };
 
 

@@ -5,21 +5,31 @@
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/EngineTypes.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/BoxComponent.h"
 #include "../Public/ATNGPyramid.h"
 #include "TestNG/TestNGGameMode.h"
+#include "TestNG/TestNGProjectile.h"
 
 // Sets default values
 AATNGCube::AATNGCube()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	
+	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube"));
 
-	//It use a Scene Component to base the tile on
-	if (RootComponent)
+	if (MeshComponent)
 	{
+		MeshComponent->SetNotifyRigidBodyCollision(true);
+
+		MeshComponent->BodyInstance.SetCollisionProfileName("BlockAllDynamic");
+		MeshComponent->OnComponentHit.AddDynamic(this, &AATNGCube::OnCompHit);
+		RootComponent = MeshComponent;
 		RootComponent->SetMobility(EComponentMobility::Movable);
 	}
-	
-	//MeshComponent = CreateDefaultSubobject<UStaticMesh>(TEXT("Cube"));
+	else RootComponent->SetMobility(EComponentMobility::Movable);
+
 }
 
 void AATNGCube::TickFalling()
@@ -137,6 +147,21 @@ int32 AATNGCube::GetPyramidPosition() const
 	return PyramidAddress;
 }
 
+void AATNGCube::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	auto aux = Cast<ATestNGProjectile>(OtherActor);
+	if (aux)
+	{
+		OtherActor->Destroy();
+		Destroy();
+	}
+}
+
+void AATNGCube::ChangeMaterial(UMaterialInterface* Mat)
+{
+	MeshComponent->SetMaterial(0, Mat);
+}
+
 // Called when the game starts or when spawned
 void AATNGCube::BeginPlay()
 {
@@ -145,4 +170,3 @@ void AATNGCube::BeginPlay()
 	PyramidOwner = Cast<AATNGPyramid>(GetOwner());
 	
 }
-
