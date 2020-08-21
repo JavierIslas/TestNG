@@ -153,6 +153,6 @@ void ATestNGCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& O
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-
 	DOREPLIFETIME(ATestNGCharacter, bIsAlive);
+	DOREPLIFETIME(ATestNGCharacter, CurrentPoints);
 }

@@ -155,6 +155,7 @@ void AATNGCube::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 		APawn* Shooter = OtherActor->GetInstigator();;
 		OtherActor->Destroy();
 		PyramidOwner->StartMachingCubes(this, Shooter);
+		Destroy();
 	}
 }
 

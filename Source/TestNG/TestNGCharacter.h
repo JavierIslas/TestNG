@@ -70,7 +70,7 @@ protected:
 
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Points")
+	UPROPERTY(BlueprintReadOnly, Replicated, Category = "Points")
 	int32 CurrentPoints;
 
 public:
