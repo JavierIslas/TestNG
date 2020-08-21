@@ -75,8 +75,10 @@ int32 ATestNGCharacter::GetCurrentPoints()
 
 void ATestNGCharacter::AddPoints(int32 NewPoints)
 {
-	if(NewPoints)
+	if (NewPoints) {
 		CurrentPoints += NewPoints;
+		UE_LOG(LogTemp, Warning, TEXT("Added Points: %d, Current Points: %d"), NewPoints, CurrentPoints);
+	}
 }
 
 void ATestNGCharacter::Fire()

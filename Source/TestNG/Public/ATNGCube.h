@@ -41,13 +41,13 @@ public:
 	UFUNCTION()
 	void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-
 	void ChangeMaterial(class UMaterialInterface* Mat, int32 ColorID);
 
-	UPROPERTY(BlueprintReadOnly)
-	int32 CubeColor;
+	TEnumAsByte<EState::Type> GetState() { return CubeState; };
 
-	TEnumAsByte<EState::Type> CubeState;
+	void SetState(EState::Type NewState) { CubeState = NewState; };
+
+	int32 GetCubeColor() { return CubeColor; };
 
 protected:
 	// Called when the game starts or when spawned
@@ -76,5 +76,11 @@ protected:
 	/**Table where the Tile is */
 	UPROPERTY(BlueprintReadOnly, Category = "Tile")
 	class AATNGPyramid* PyramidOwner;
+
+private: 
+
+	int32 CubeColor;
+
+	TEnumAsByte<EState::Type> CubeState;
 
 };

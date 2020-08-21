@@ -6,6 +6,7 @@
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInterface.h"
 #include "../Public/ATNGCube.h"
+#include "TestNG/TestNGGameMode.h"
 
 // Sets default values
 AATNGPyramid::AATNGPyramid()
@@ -49,7 +50,7 @@ AATNGCube* AATNGPyramid::CreateCube(int32 Mat, FVector SpawnLocation, int32 Spaw
 int32 AATNGPyramid::SelectColor()
 {
 	float NormalizingFactor = 0;
-	for (const FTileType& MatBase : MaterialsLib)
+	for (const FCubeType& MatBase : MaterialsLib)
 	{
 		NormalizingFactor += MatBase.Probability;
 	}
@@ -176,22 +177,32 @@ void AATNGPyramid::OnFinishedFalling(AATNGCube* Cube, int32 LandingAddress)
 	{
 		CubesInGame[ReturnTableAddress] = Cube;
 		Cube->SetPyramidAddress(ReturnTableAddress);
-		Cube->CubeState = EState::S_Normal;
+		Cube->SetState(EState::S_Normal);
 	}
 }
+
 
 TArray<AATNGCube*> AATNGPyramid::FindNeighbors(AATNGCube* StartingCube, bool bMustMatchID, int32 RunLength) const
 {
 	FVector auxTableAddress = GetLocationFromPyramidAddress(StartingCube->GetPyramidPosition());
 	AATNGCube* NeighborTile = nullptr;
-	TArray<AATNGCube*> MatchInProgress;
-	TArray<AATNGCube*> AllMatchingCubes;
-
-	//If we found any other tile, or if we're not conserner with matching TileID, then we know we have a valid run, and we need to add the original tile to the list
-	//If we do care about matchin tile type and we haven't found anything by this point, then we don't have a match and should not return the starting tile in a list by itself
+	TArray<AATNGCube*> AllMatchingCubes = { StartingCube };
+	StartingCube->SetState(EState::S_PendingDelete);
 	if (AllMatchingCubes.Num() > 0 || !bMustMatchID)
 	{
 		AllMatchingCubes.Add(StartingCube);
 	}
 	return AllMatchingCubes;
+}
+
+void AATNGPyramid::StartMachingCubes(AATNGCube* StartPoint, APawn* Player)
+{
+	ATestNGGameMode* GM = Cast<ATestNGGameMode>(GetWorld()->GetAuthGameMode());
+
+	if (GM) {
+		TArray<AATNGCube*> Neighbors = FindNeighbors(StartPoint, true, 0);
+		
+		GM->GivePointsToPlayer(Neighbors.Num(), Player);
+	}
+
 }

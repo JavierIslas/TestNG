@@ -19,7 +19,11 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Game Mode")
 	FOnActorKilled OnActorKilled;
 
-	void GivePointsToPlayer(const int32 MatchLength, class ACharacter* Player);
+	UFUNCTION(exec)
+	void TestPoints();
+
+	UFUNCTION(BlueprintCallable)
+	void GivePointsToPlayer(const int32 MatchLength, class APawn* Player);
 
 private:
 	int32 CalculatePoints(int32 Cant);

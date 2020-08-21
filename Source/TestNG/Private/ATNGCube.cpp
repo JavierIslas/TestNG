@@ -152,8 +152,9 @@ void AATNGCube::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 	ATestNGProjectile* aux = Cast<ATestNGProjectile>(OtherActor);
 	if (aux)
 	{
+		APawn* Shooter = OtherActor->GetInstigator();;
 		OtherActor->Destroy();
-		Destroy();
+		PyramidOwner->StartMachingCubes(this, Shooter);
 	}
 }
 

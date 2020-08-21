@@ -13,7 +13,7 @@ Crear una estructura que represente el cubo y replicarla
 class AATNGCube; 
 
 USTRUCT(BlueprintType)
-struct FTileType
+struct FCubeType
 {
 	GENERATED_USTRUCT_BODY();
 
@@ -45,7 +45,7 @@ public:
 	FVector CubeSize;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConfigTable")
-	TArray<FTileType> MaterialsLib;
+	TArray<FCubeType> MaterialsLib;
 
 	/** The width of the Table. Needed to Calculate cube position and neighbors. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ConfigTable")
@@ -57,10 +57,9 @@ public:
 	/** Spawn a tile and associate it with a specific Table address */
 	AATNGCube* CreateCube(int32 Mat, FVector SpawnLocation, int32 SpawnTableAddress);
 
-	/** Randomly select a color for the cube, using the probability values on the tile. */
+	/** Randomly select a color for the cube, using the probability values on the FCubeType struct. */
 	int32 SelectColor();
 
-	/** Get the pointer to the tile ar the specofoed grod address. */
 	AATNGCube* GetCubeFromPyramidAddress(int32 TableAddress) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Initialization")
@@ -70,10 +69,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Tile")
 	FVector GetLocationFromPyramidAddress(int32 Address) const;
 
-	/** Get world location from a Table address relative to another address. Offset between both is measured in tiles */
+	/** Get world location from a Table address relative to another address. Offset between both is measured in cubes */
 	FVector GetLocationFromPyramidAddressWithOffset(int32 TableAddress, int32 XOffserInTiles, int32 YOffsetInTiles) const;
 
-	/** Get table address relative to another table address. Offset between both is measured in tiles */
+	/** Get table address relative to another table address. Offset between both is measured in cubes */
 	UFUNCTION(BlueprintCallable, Category = "Tile")
 	bool GetPyramidAddressWithOffset(int32 InitialTableAddres, int32 XOffset, int32 YOffset, int32& ReturnTableAddress) const;
 
@@ -82,19 +81,17 @@ public:
 
 	void OnFinishedFalling(AATNGCube* Tile, int32 LandingAddress);
 
-	TArray<AATNGCube*> FindNeighbors(AATNGCube* StartingTile, bool bMustMatchID, int32 RunLength) const;
+
+	void StartMachingCubes(AATNGCube* StartPoint, class APawn* Player);
 
 private:
-	/** Tiles that are currently falling */
-	TArray<AATNGCube*> FallingTiles;
+	/** Array with cubes that need to change position */
+	TArray<AATNGCube*> FallingCubes;
 
-	/** Tiles that are currentle swapping position with each other.Sholud be exactly two of them, or zero */
-	TArray<AATNGCube*> SwappingTiles;
+	/** Cubes that need to be destroided */
+	TArray<AATNGCube*> CubesBeingDestroyed;
 
-	/** After spawning new tiles, wich tiles to check for automatic matches */
-	TArray<AATNGCube*> TilesToCheck;
-
-	/** Tiles that are currently reacting to being matches */
-	TArray<AATNGCube*> TilesBeingDestroyed;
+	/** Look for all the adyacent cubes with the same color to match*/
+	TArray<AATNGCube*> FindNeighbors(AATNGCube* StartingTile, bool bMustMatchID, int32 RunLength) const;
 
 };
