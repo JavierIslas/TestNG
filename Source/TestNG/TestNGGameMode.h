@@ -25,8 +25,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void GivePointsToPlayer(const int32 MatchLength, class APawn* Player);
 
+	float GetCubeMoveSpeed() { return MoveSpeed; };
+
 private:
 	int32 CalculatePoints(int32 Cant);
+
+	float MoveSpeed = 1.0f;
 };
 
 

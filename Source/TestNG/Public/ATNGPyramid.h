@@ -91,7 +91,11 @@ private:
 	/** Cubes that need to be destroided */
 	TArray<AATNGCube*> CubesBeingDestroyed;
 
-	/** Look for all the adyacent cubes with the same color to match*/
-	TArray<AATNGCube*> FindNeighbors(AATNGCube* StartingTile, bool bMustMatchID, int32 RunLength) const;
+	/** Change the state or destruct the cubes that are in the game*/
+	void UpdateCubesInGame(int32 Index);
 
+	/** Look for all the adyacent cubes with the same color to match*/
+	void FindNeighbors(AATNGCube* StartingTile);
+
+	
 };

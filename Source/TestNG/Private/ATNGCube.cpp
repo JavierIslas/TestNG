@@ -35,21 +35,21 @@ AATNGCube::AATNGCube()
 void AATNGCube::TickFalling()
 {
 	ATestNGGameMode* GM = Cast<ATestNGGameMode>(UGameplayStatics::GetGameMode(this));
-	if (GM)
+	if (GM && PyramidOwner)
 	{
-		check(PyramidOwner);
-		check(TotalFallingTime > 0.0f);
-		float FallCompleteFraction = (GetWorld()->GetTimeSeconds() - FallingStartTime) / TotalFallingTime;
+		if (TotalFallingTime > 0.0f) {
+			float FallCompleteFraction = (GetWorld()->GetTimeSeconds() - FallingStartTime) / TotalFallingTime;
 
-		//Stop falling if we're at the final location. Otherwise, continue to move
-		if (FallCompleteFraction >= 1.0f)
-		{
-			StopFalling();
-		}
-		else
-		{
-			FVector NewLocation = FMath::Lerp(FallingStartLocation, FallingEndLocation, FallCompleteFraction);
-			SetActorLocation(NewLocation);
+			//Stop falling if we're at the final location. Otherwise, continue to move
+			if (FallCompleteFraction >= 1.0f)
+			{
+				StopFalling();
+			}
+			else
+			{
+				FVector NewLocation = FMath::Lerp(FallingStartLocation, FallingEndLocation, FallCompleteFraction);
+				SetActorLocation(NewLocation);
+			}
 		}
 	}
 	else
@@ -67,59 +67,59 @@ void AATNGCube::StartFalling(bool bUseCurrentWorldLocation)
 	FallingStartLocation = GetActorLocation();
 	//Falls at a fixed rate of 60 FPS
 	GetWorldTimerManager().SetTimer(TimerHandle_TickFalling, this, &AATNGCube::TickFalling, 0.01f, true);
-	check(PyramidOwner);
+	if (PyramidOwner) {
 
-	if (!bUseCurrentWorldLocation)
-	{
-		//Fall from where we are on the table to wher we are supposed to be on the table
-		int32 YOffset = 0;
-		int32 HeightAboveBottom = 1;
-		while (true)
+		if (!bUseCurrentWorldLocation)
 		{
-			++YOffset;
-			if (PyramidOwner->GetPyramidAddressWithOffset(GetPyramidPosition(), 0, -YOffset, LandingAddress))
+			//Fall from where we are on the table to wher we are supposed to be on the table
+			int32 YOffset = 0;
+			int32 HeightAboveBottom = 1;
+			while (true)
 			{
-				if (AATNGCube* TileBelow = PyramidOwner->GetCubeFromPyramidAddress(LandingAddress))
+				++YOffset;
+				if (PyramidOwner->GetPyramidAddressWithOffset(GetPyramidPosition(), 0, -YOffset, LandingAddress))
 				{
-					//We're not off the table, so check to see what is in this space and reack to it
-					if (TileBelow->CubeState == EState::S_Falling)
+					if (AATNGCube* TileBelow = PyramidOwner->GetCubeFromPyramidAddress(LandingAddress))
 					{
-						//This space contains a fallig thile, so contiue to fall through it, but note that the tile will land underneath us, so we need to leave a gap for it
-						++HeightAboveBottom;
-						continue;
+						//We're not off the table, so check to see what is in this space and reack to it
+						if (TileBelow->CubeState == EState::S_Falling)
+						{
+							//This space contains a fallig thile, so contiue to fall through it, but note that the tile will land underneath us, so we need to leave a gap for it
+							++HeightAboveBottom;
+							continue;
+						}
+						else if (TileBelow->CubeState == EState::S_PendingDelete)
+						{
+							//This space contains a tile that is about to be deleted. WE can fall through this space freely
+							continue;
+						}
 					}
-					else if (TileBelow->CubeState == EState::S_PendingDelete)
+					else
 					{
-						//This space contains a tile that is about to be deleted. WE can fall through this space freely
+						//The space below is empty, but is on the table. We can fall through this space freely
 						continue;
 					}
 				}
-				else
-				{
-					//The space below is empty, but is on the table. We can fall through this space freely
-					continue;
-				}
+				//This space is off the table or contains a tile that is staying. Go back one space and stop
+				YOffset -= HeightAboveBottom;
+				PyramidOwner->GetPyramidAddressWithOffset(GetPyramidPosition(), 0, -YOffset, LandingAddress);
+				break;
 			}
-			//This space is off the table or contains a tile that is staying. Go back one space and stop
-			YOffset -= HeightAboveBottom;
-			PyramidOwner->GetPyramidAddressWithOffset(GetPyramidPosition(), 0, -YOffset, LandingAddress);
-			break;
+			FallDistance = PyramidOwner->CubeSize.Y * YOffset;
+			FallingEndLocation = FallingStartLocation;
+			FallingEndLocation.Z -= FallDistance;
 		}
-		FallDistance = PyramidOwner->CubeSize.Y * YOffset;
-		FallingEndLocation = FallingStartLocation;
-		FallingEndLocation.Z -= FallDistance;
+		else
+		{
+			//Fall from where we are physically to where we are supposed to be on the table
+			LandingAddress = GetPyramidPosition();
+			FallingEndLocation = PyramidOwner->GetLocationFromPyramidAddress(LandingAddress);
+			FallDistance = FallingStartLocation.Z - FallingEndLocation.Z;
+		}
 	}
-	else
-	{
-		//Fall from where we are physically to where we are supposed to be on the table
-		LandingAddress = GetPyramidPosition();
-		FallingEndLocation = PyramidOwner->GetLocationFromPyramidAddress(LandingAddress);
-		FallDistance = FallingStartLocation.Z - FallingEndLocation.Z;
-	}
-	/**
 	ATestNGGameMode* GM = Cast<ATestNGGameMode>(UGameplayStatics::GetGameMode(this));
 	TotalFallingTime = 0.0f;
-	if (GM && (GM->TileMoveSpeed > 0.0f))
+	if (GM && (GM->GetCubeMoveSpeed() > 0.0f))
 	{
 		TotalFallingTime = FallDistance / 60;
 	}
@@ -127,7 +127,6 @@ void AATNGCube::StartFalling(bool bUseCurrentWorldLocation)
 	{
 		TotalFallingTime = 0.75f;
 	}
-	**/
 }
 
 void AATNGCube::StopFalling()

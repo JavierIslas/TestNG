@@ -81,6 +81,7 @@ private:
 
 	int32 CubeColor;
 
+	UPROPERTY(VisibleAnywhere, Category = "GameMechanics")
 	TEnumAsByte<EState::Type> CubeState;
 
 };

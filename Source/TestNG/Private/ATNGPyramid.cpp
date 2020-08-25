@@ -49,22 +49,7 @@ AATNGCube* AATNGPyramid::CreateCube(int32 Mat, FVector SpawnLocation, int32 Spaw
 //Testing probability method to balance the max punctuation of a game
 int32 AATNGPyramid::SelectColor()
 {
-	float NormalizingFactor = 0;
-	for (const FCubeType& MatBase : MaterialsLib)
-	{
-		NormalizingFactor += MatBase.Probability;
-	}
-	float TestNumber = FMath::FRandRange(0.0f, NormalizingFactor);
-	float CompareTo = 0;
-	for (int32 ArrayChecked = 0; ArrayChecked != MaterialsLib.Num(); ArrayChecked++)
-	{
-		CompareTo += MaterialsLib[ArrayChecked].Probability;
-		if (TestNumber <= CompareTo)
-		{
-			return ArrayChecked;
-		}
-	}
-	return 0;
+	return FMath::RandRange(0, 2);
 }
 
 
@@ -128,25 +113,26 @@ bool AATNGPyramid::GetPyramidAddressWithOffset(int32 InitialTableAddres, int32 X
 	ReturnTableAddress = -1; //Invalid value
 
 	//check for within X range
-	check(TableWidth > 0);
-	NewAxisValue = (InitialTableAddres % TableWidth) + XOffset;
-	if (NewAxisValue != FMath::Clamp(NewAxisValue, 0, (TableWidth - 1)))
-	{
-		return false;
-	}
+	if (TableWidth > 0) {
+		NewAxisValue = (InitialTableAddres % TableWidth) + XOffset;
+		if (NewAxisValue != FMath::Clamp(NewAxisValue, 0, (TableWidth - 1)))
+		{
+			return false;
+		}
 
-	//check for within Y range
-	NewAxisValue = (InitialTableAddres % TableWidth) + YOffset;
-	if (NewAxisValue != FMath::Clamp(NewAxisValue, 0, (TableHeight - 1)))
-	{
-		return false;
+		//check for within Y range
+		NewAxisValue = (InitialTableAddres % TableWidth) + YOffset;
+		if (NewAxisValue != FMath::Clamp(NewAxisValue, 0, (TableHeight - 1)))
+		{
+			return false;
+		}
 	}
-
 	ReturnTableAddress = (InitialTableAddres + XOffset + (YOffset * TableWidth));
-	check(ReturnTableAddress >= 0);
-	check(ReturnTableAddress < (TableWidth* TableHeight));
+	if ((ReturnTableAddress >= 0) && (ReturnTableAddress < (TableWidth * TableHeight))) {
+		return true;
+	}
 
-	return true;
+	return false;
 }
 
 bool AATNGPyramid::AreAddressesNeighbors(int32 TableAddressA, int32 TableAddressB) const
@@ -181,28 +167,76 @@ void AATNGPyramid::OnFinishedFalling(AATNGCube* Cube, int32 LandingAddress)
 	}
 }
 
-
-TArray<AATNGCube*> AATNGPyramid::FindNeighbors(AATNGCube* StartingCube, bool bMustMatchID, int32 RunLength) const
+void AATNGPyramid::FindNeighbors(AATNGCube* StartingCube)
 {
-	FVector auxTableAddress = GetLocationFromPyramidAddress(StartingCube->GetPyramidPosition());
-	AATNGCube* NeighborTile = nullptr;
-	TArray<AATNGCube*> AllMatchingCubes = { StartingCube };
-	StartingCube->SetState(EState::S_PendingDelete);
-	if (AllMatchingCubes.Num() > 0 || !bMustMatchID)
-	{
-		AllMatchingCubes.Add(StartingCube);
+	if (StartingCube->GetState() != EState::S_PendingDelete) {
+		int32 NeighborAddress;
+		AATNGCube* NeighborCube = nullptr;
+		StartingCube->SetState(EState::S_PendingDelete);
+		// Check verticals, then check horizontals.
+		for (int32 Horizontal = 0; Horizontal < 2; ++Horizontal)
+		{
+			// Check negative direction, then check positive direction.
+			for (int32 Direction = -1; Direction <= 1; Direction += 2)
+			{
+				int32 MaxGridOffset = Horizontal ? TableWidth : TableHeight;
+				// Check that its still withing range on the matrix
+				for (int32 GridOffset = 1; GridOffset < MaxGridOffset; ++GridOffset)
+				{
+					if (GetPyramidAddressWithOffset(StartingCube->GetPyramidPosition(), Direction * (Horizontal ? GridOffset : 0), Direction * (Horizontal ? 0 : GridOffset), NeighborAddress))
+					{
+						NeighborCube = GetCubeFromPyramidAddress(NeighborAddress);
+						if (NeighborCube && (NeighborCube->GetCubeColor() == StartingCube->GetCubeColor()))
+						{
+							CubesBeingDestroyed.Add(NeighborCube);
+							FindNeighbors(NeighborCube);
+						}
+						else  GridOffset = MaxGridOffset;
+					}
+				}
+			}
+		}
 	}
-	return AllMatchingCubes;
+	return;
+}
+
+
+void AATNGPyramid::UpdateCubesInGame(int32 Index)
+{
+	int32 auxIndex;
+	if (GetPyramidAddressWithOffset(Index, 0, 1, auxIndex)) {
+		if ((GetCubeFromPyramidAddress(auxIndex)) && (GetCubeFromPyramidAddress(auxIndex)->GetState() == EState::S_Normal)) {
+			GetCubeFromPyramidAddress(auxIndex)->SetState(EState::S_Falling);
+			UpdateCubesInGame(auxIndex);
+		}
+		else return;
+	}
+
 }
 
 void AATNGPyramid::StartMachingCubes(AATNGCube* StartPoint, APawn* Player)
 {
+	CubesBeingDestroyed.Empty();
 	ATestNGGameMode* GM = Cast<ATestNGGameMode>(GetWorld()->GetAuthGameMode());
 
 	if (GM) {
-		TArray<AATNGCube*> Neighbors = FindNeighbors(StartPoint, true, 0);
-		
-		GM->GivePointsToPlayer(Neighbors.Num(), Player);
-	}
 
+		CubesBeingDestroyed.Add(StartPoint);
+		FindNeighbors(StartPoint);
+		
+		GM->GivePointsToPlayer(CubesBeingDestroyed.Num(), Player);
+
+		for (AATNGCube* Cube : CubesBeingDestroyed) {
+			UpdateCubesInGame(Cube->GetPyramidPosition());
+		}
+
+		for (AATNGCube* Cube : CubesInGame) {
+			if (Cube) {
+				if (Cube->GetState() == EState::S_PendingDelete) Cube->Destroy();
+				else if (Cube->GetState() == EState::S_Falling) {
+					Cube->StartFalling();
+				}
+			}
+		}
+	}
 }

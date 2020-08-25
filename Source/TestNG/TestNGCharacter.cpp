@@ -41,16 +41,17 @@ ATestNGCharacter::ATestNGCharacter()
 void ATestNGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// set up gameplay key bindings
-	check(PlayerInputComponent);
+	if (PlayerInputComponent) {
 
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ATestNGCharacter::Fire);
+		PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+		PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ATestNGCharacter::Fire);
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &ATestNGCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ATestNGCharacter::MoveRight);
+		PlayerInputComponent->BindAxis("MoveForward", this, &ATestNGCharacter::MoveForward);
+		PlayerInputComponent->BindAxis("MoveRight", this, &ATestNGCharacter::MoveRight);
 
-	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+		PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
+		PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+	}
 }
 
 
