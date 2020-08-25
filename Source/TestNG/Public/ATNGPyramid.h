@@ -81,14 +81,12 @@ public:
 
 	void OnFinishedFalling(AATNGCube* Tile, int32 LandingAddress);
 
-
+	/**Needs refactoring*/
 	void StartMachingCubes(AATNGCube* StartPoint, class APawn* Player);
 
 private:
-	/** Array with cubes that need to change position */
-	TArray<AATNGCube*> FallingCubes;
 
-	/** Cubes that need to be destroided */
+	/** Cubes that need to be destroid, is a Struct to help the use of "for each". */
 	TArray<AATNGCube*> CubesBeingDestroyed;
 
 	/** Change the state or destruct the cubes that are in the game*/
